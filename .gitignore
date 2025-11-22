@@ -1,0 +1,35 @@
+# Node modules
+node_modules/
+
+# VS Code extension build
+*.vsix
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*_docs/
+
+# Whoosh index files
+whoosh_index/
+scripts/whoosh_index/
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/

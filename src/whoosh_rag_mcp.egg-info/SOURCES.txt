@@ -1,0 +1,12 @@
+LICENSE
+README.md
+pyproject.toml
+src/whoosh_rag_mcp/__init__.py
+src/whoosh_rag_mcp/doc_retriever.py
+src/whoosh_rag_mcp/mcp_server.py
+src/whoosh_rag_mcp.egg-info/PKG-INFO
+src/whoosh_rag_mcp.egg-info/SOURCES.txt
+src/whoosh_rag_mcp.egg-info/dependency_links.txt
+src/whoosh_rag_mcp.egg-info/entry_points.txt
+src/whoosh_rag_mcp.egg-info/requires.txt
+src/whoosh_rag_mcp.egg-info/top_level.txt

@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "whoosh-rag-mcp"
+version = "0.1.0"
+description = "Search and retrieve documentation using Whoosh full-text search with MCP server support"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "jianlins", email = "jianlins@example.com"}
+]
+keywords = ["whoosh", "documentation", "search", "rag", "mcp"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "Whoosh==2.7.4",
+    "mcp>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/jianlins/whoosh_rag_mcp"
+Repository = "https://github.com/jianlins/whoosh_rag_mcp.git"
+
+[project.scripts]
+whoosh-rag-server = "whoosh_rag_mcp.mcp_server:main"
+
+[tool.setuptools]
+# Use automatic package discovery with src-layout
+packages = ["whoosh_rag_mcp"]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+whoosh_rag_mcp = ["py.typed"]

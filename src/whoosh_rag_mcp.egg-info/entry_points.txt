@@ -1,0 +1,2 @@
+[console_scripts]
+whoosh-rag-server = whoosh_rag_mcp.mcp_server:main

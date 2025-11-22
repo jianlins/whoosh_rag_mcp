@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "whoosh-rag-docs": {
+      "command": "C:\\Users\\VHASLCShiJ\\software\\miniforge3\\envs\\vs_research\\python",
+      "args": ["-m", "whoosh_rag_mcp.mcp_server"],
+      "env": {
+        "DOCS_ROOT": "C:\\Users\\VHASLCShiJ\\Projects\\VSCodeProjects\\whoosh_rag_mcp\\references",
+        "INDEX_DIR": "C:\\Users\\VHASLCShiJ\\Projects\\VSCodeProjects\\whoosh_rag_mcp\\whoosh_index"
+      }
+    }
+  }
+}

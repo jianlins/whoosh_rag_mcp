@@ -1,0 +1,5 @@
+{
+  "whooshRag.referencesPath": "references",
+  "whooshRag.pythonPath": "python",
+  "whooshRag.indexPath": "whoosh_index"
+}
