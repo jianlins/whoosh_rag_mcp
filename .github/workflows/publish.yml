@@ -1,5 +1,5 @@
 # This workflow will bump version, build the package, run tests, create a release,
-# and publish to PyPI when changes are pushed to main branch
+# and publish to PyPI
 name: Publish to PyPI
 
 on:
@@ -9,86 +9,135 @@ on:
     tags:
       - '*'
   workflow_dispatch:
-  
-
-permissions:
-  contents: write
+    inputs:
+      publish_to_pypi:
+        description: 'Publish to PyPI?'
+        required: true
+        type: boolean
+        default: false
+      create_release:
+        description: 'Create GitHub Release?'
+        required: true
+        type: boolean
+        default: true
 
 jobs:
-  build_and_publish:
+  build-and-publish:
     runs-on: ubuntu-latest
-    
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    environment:
+      name: pypi
+      url: https://pypi.org/p/whoosh-rag-mcp
+    permissions:
+      id-token: write
+      contents: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch all tags
+        run: git fetch --tags
+
+      - name: Read version from __version.py
+        id: get_version
+        run: |
+          VERSION=$(python -c "import sys; sys.path.insert(0, 'src'); from whoosh_rag_mcp.__version import __version__; print(__version__)")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if tag exists and bump version if needed
+        id: check_tag
+        run: |
+          TAG="v${{ steps.get_version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            # Tag exists, bump version
+            OLD_VERSION=${{ steps.get_version.outputs.version }}
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$OLD_VERSION"
+            PATCH=$((PATCH+1))
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+            echo "Bumping version to $NEW_VERSION"
+            echo "__version__ = \"$NEW_VERSION\"" > src/whoosh_rag_mcp/__version.py
+            sed -i "s/version = \".*\"/version = \"$NEW_VERSION\"/" pyproject.toml
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add src/whoosh_rag_mcp/__version.py pyproject.toml
+            git commit -m "Bump version to $NEW_VERSION"
+            git push origin HEAD:${GITHUB_REF}
+            echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            echo "tag=v$NEW_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ steps.get_version.outputs.version }}" >> $GITHUB_OUTPUT
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set release name
+        id: release_name
+        run: |
+          echo "release_name=whoosh-rag-mcp-${{ steps.check_tag.outputs.version }}" >> $GITHUB_OUTPUT
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-          cache: 'pip'
+          python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install build tools
         run: |
-          python --version
           python -m pip install --upgrade pip
           pip install build twine pytest
-          pip install -e .
-
-      - name: Check and bump version
-        id: bump
-        uses: jianlins/check_bump_version@v1
-        with:
-          bump-type: 'patch'
-          current-version: '0.1.0'
-
-      - name: Update version in pyproject.toml
-        run: |
-          sed -i 's/version = ".*"/version = "${{ steps.bump.outputs.version }}"/' pyproject.toml
-
-      - name: Update version in __version.py
-        run: |
-          echo '__version__ = "${{ steps.bump.outputs.version }}"' > src/whoosh_rag_mcp/__version.py
-
-      - name: Commit version changes
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add pyproject.toml src/whoosh_rag_mcp/__version.py
-          git commit -m "Bump version to ${{ steps.bump.outputs.version }}" || echo "No changes to commit"
-          git push || echo "No changes to push"
 
       - name: Build package
         run: |
           python -m build
 
-      - name: Run tests
+      - name: List dist directory contents
+        run: ls -l dist || echo "dist directory not found"
+
+      - name: Run tests (optional)
         run: |
-          pip install dist/whoosh_rag_mcp-${{ steps.bump.outputs.version }}-*.whl
+          pip install dist/whoosh_rag_mcp-${{ steps.check_tag.outputs.version }}-*.whl
           pytest || echo "No tests found or tests passed"
 
-      - name: Check built files
-        run: |
-          ls -la dist/
-          echo "Built files:"
-          ls dist/
+      - name: Publish to PyPI (trusted publisher)
+        if: ${{ github.event.inputs.publish_to_pypi == 'true' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # with:
+        #   No username/password/token needed when using trusted publisher!
+        #   Optionally specify repository-url for TestPyPI
+        #   repository-url: https://test.pypi.org/legacy/
 
-      - name: Create Release
+      - name: Create GitHub Release (optional)
+        if: ${{ github.event.inputs.create_release == 'true' }}
         id: create_release
-        uses: ncipollo/release-action@v1
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag: v${{ steps.bump.outputs.version }}
-          name: Release v${{ steps.bump.outputs.version }}
+          tag_name: ${{ steps.check_tag.outputs.tag }}
+          release_name: ${{ steps.release_name.outputs.release_name }}
           draft: false
           prerelease: false
-          artifacts: "dist/*"
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to PyPI
+      - name: Upload wheel files to release
+        if: ${{ github.event.inputs.create_release == 'true' }}
+        uses: actions/upload-release-asset@v1
         env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: |
-          python -m twine upload dist/*
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/whoosh_rag_mcp-${{ steps.check_tag.outputs.version }}-py3-none-any.whl
+          asset_name: whoosh_rag_mcp-${{ steps.check_tag.outputs.version }}-py3-none-any.whl
+          asset_content_type: application/octet-stream
+
+      - name: Upload tar.gz files to release
+        if: ${{ github.event.inputs.create_release == 'true' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/whoosh_rag_mcp-${{ steps.check_tag.outputs.version }}.tar.gz
+          asset_name: whoosh_rag_mcp-${{ steps.check_tag.outputs.version }}.tar.gz
+          asset_content_type: application/gzip
