@@ -88,6 +88,10 @@ Add this configuration to the `mcpServers` object:
 
 **Important**: Replace the paths with your actual project directory paths.
 
+**Cline MCP Configuration Example:**
+
+![Cline MCP configuration screenshot](docs/cline_config.png)
+
 #### Option B: For GitHub Copilot Chat (VS Code Extension)
 
 GitHub Copilot uses a different configuration format than Cline. You'll create an `mcp.json` file instead of editing `settings.json`.
@@ -284,6 +288,10 @@ python -m whoosh_rag_mcp.doc_retriever --query "your search terms" --full --json
 2. Verify the paths in your MCP settings are correct (use absolute paths)
 3. Check that dependencies are installed: `pip install -r requirements.txt`
 4. Look for error messages in Cline's MCP server logs
+
+**Visual Reference:**
+
+![Cline MCP configuration screenshot](docs/images/cline_mcp_config.png)
 
 ### GitHub Copilot Chat Issues
 
