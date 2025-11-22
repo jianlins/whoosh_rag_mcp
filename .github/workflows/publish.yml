@@ -56,7 +56,7 @@ jobs:
       - name: Read version from __version.py
         id: get_version
         run: |
-          VERSION=$(python -c "import sys; sys.path.insert(0, 'src'); from whoosh_rag_mcp.__version import __version__; print(__version__)")
+          VERSION=$(grep -oP '(?<=__version__ = ")[^"]+' src/whoosh_rag_mcp/__version.py)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Check if tag exists and bump version if needed
