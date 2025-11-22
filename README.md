@@ -24,10 +24,26 @@ The MCP server exposes the following tools to AI assistants:
 
 ## Installation
 
-### 1. Install Python Dependencies
+### 1. Install from PyPI
+
+The easiest way to install the package is from PyPI:
 
 ```bash
-pip install -r requirements.txt
+pip install whoosh-rag-mcp
+```
+
+Alternatively, you can install directly from GitHub:
+
+```bash
+pip install git+https://github.com/jianlins/whoosh_rag_mcp.git
+```
+
+Or for development (editable install):
+
+```bash
+git clone https://github.com/jianlins/whoosh_rag_mcp.git
+cd whoosh_rag_mcp
+pip install -e .
 ```
 
 ### 2. Configure Environment Variables
